@@ -867,13 +867,7 @@ _movi(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 	} else if (i0 >= w && i0 <= w + 0x3ff && !((i0 - w) & 0x3)) {
 		MOVA((i0 - w) >> 2);
 		movr(r0, _R0);
-	} else if (is_low_mask(i0)) {
-		MOVI(r0, -1);
-		rshi_u(r0, r0, unmasked_bits_count(i0));
-	} else if (is_high_mask(i0)) {
-		MOVI(r0, -1);
-		lshi(r0, r0, unmasked_bits_count(i0));
-	} else if (movi_loop_cnt(i0) < 4) {
+	} else if (movi_loop_cnt(i0) < 3) {
 		movi_loop(_jit, r0, i0);
 	} else {
 		load_const(0, r0, i0);

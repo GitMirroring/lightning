@@ -705,6 +705,8 @@ static void _patch_abs(jit_state_t*,jit_word_t,jit_word_t);
 #    define patch_abs(instr,label)	_patch_abs(_jit,instr,label)
 static void _patch_at(jit_state_t*,jit_word_t,jit_word_t);
 #    define patch_at(jump,label)	_patch_at(_jit,jump,label)
+static void _patch_const(jit_state_t*,jit_word_t,jit_word_t);
+#    define patch_const(jump,label)	_patch_const(_jit,jump,label)
 static void _prolog(jit_state_t*,jit_node_t*);
 #  define prolog(node)			_prolog(_jit,node)
 static void _epilog(jit_state_t*,jit_node_t*);
@@ -3061,6 +3063,17 @@ _patch_abs(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 }
 
 static void
+_patch_const(jit_state_t *_jit, jit_word_t addr, jit_word_t target)
+{
+	jit_instr_t *ptr = (jit_instr_t *)addr;
+	jit_int32_t disp;
+
+	disp = ((target - addr) >> 2) - 1 + !!(addr & 0x3);
+	assert(!(disp > 0xff));
+	ptr->op = (ptr->op & 0xff00) | disp;
+}
+
+static void
 _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 {
 	jit_instr_t *ptr = (jit_instr_t *)instr;
@@ -3102,16 +3115,11 @@ _patch_at(jit_state_t *_jit, jit_word_t instr, jit_word_t label)
 		}
 		break;
 	case 0xd:
-		if (ptr->op & 0xff) {
-			/* TODO: Fix the mess. patch_at() gets called with 'instr' pointing
-			 * to the mov.l opcode and 'label' being the value that should be
-			 * loaded into the register. So we read the address at which the mov.l
-			 * points to, and write the label there. */
-			*(jit_uint32_t *)((instr & ~0x3) + 4 + (ptr->op & 0xff) * 4) = label;
-		} else {
-			disp = ((label - instr) >> 2) - 1 + !!(instr & 0x3);
-			ptr->op = (ptr->op & 0xff00) | disp;
-		}
+		/* patch_at() gets called with 'instr' pointing to the mov.l opcode and
+		 * 'label' being the value that should be loaded into the register.
+		 * So we read the address at which the mov.l points to, and write the
+		 * label there. */
+		*(jit_uint32_t *)((instr & ~0x3) + 4 + (ptr->op & 0xff) * 4) = label;
 		break;
 	default:
 		assert("unhandled branch opcode");

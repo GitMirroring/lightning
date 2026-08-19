@@ -1643,8 +1643,8 @@ _flush_consts(jit_state_t *_jit, jit_bool_t force)
 #endif
 
     for (offset = 0; offset < _jitc->consts.offset; offset += 2)
-	patch_at(_jitc->consts.patches[offset],
-		 word + (_jitc->consts.patches[offset + 1] << 2));
+	patch_const(_jitc->consts.patches[offset],
+		    word + (_jitc->consts.patches[offset + 1] << 2));
     _jitc->consts.length = _jitc->consts.offset = 0;
 }
 

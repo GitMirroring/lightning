@@ -1761,10 +1761,9 @@ emit_branch_opcode(jit_state_t *_jit, jit_word_t i0, jit_word_t w,
 		else
 			BF(0);
 
-		/* Leave space after the BF/BT in case we need to add a
-		 * BRA opcode. */
-		w = _jit->code.length - (_jit->pc.uc + _jitc->ioff * 2 - _jit->code.ptr);
-		if (w > 254) {
+		/* If branching to an address that BT/BF can't reach, do a
+		 * far branch: patch_at() will add a BRA() there */
+		if (_jitc->far) {
 			NOP();
 			NOP();
 		}
@@ -4042,7 +4041,7 @@ _jmpi(jit_state_t *_jit, jit_word_t i0, jit_bool_t force)
 	w = _jit->pc.w + _jitc->ioff * 2;
 	disp = (i0 - w >> 1) - 2;
 
-	if (force || (disp >= -2048 && disp <= 2046)) {
+	if ((force && !_jitc->far) || (!force && disp >= -2048 && disp <= 2046)) {
 		BRA(disp);
 		NOP();
 	} else if (0) {

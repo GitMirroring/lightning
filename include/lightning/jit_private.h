@@ -618,6 +618,7 @@ struct jit_compiler {
     jit_uint16_t          ibuf[32];
     jit_uint16_t          ioff;
     jit_uint16_t          idirect;
+    jit_bool_t            far;
     jit_uint64_t          reg_mask[3]; /* past, present, future */
 #endif
 #if __mips__

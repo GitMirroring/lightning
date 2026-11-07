@@ -555,6 +555,59 @@ _jit_regarg_p(jit_state_t *_jit, jit_node_t *node, jit_int32_t regno)
     return (0);
 }
 
+/*
+ * Called at the epilog, where every label of the function has its address, so
+ * each patch still pending can be measured instead of guessed. A forward
+ * branch is emitted in its short form first - a bare BF/BT with nothing
+ * reserved behind it, a bare BRA - and anything that turns out not to reach
+ * is flagged jit_flag_far and the function emitted again through lightning's
+ * own _jitc->again path, which rewinds the constant pools and the patch list
+ * along with the code.
+ */
+static jit_bool_t
+_relax_branches(jit_state_t *_jit, jit_int32_t first_patch)
+{
+    jit_int32_t		 offset;
+    jit_word_t		 inst;
+    jit_word_t		 disp;
+    jit_uint16_t	 op;
+    jit_node_t		*node;
+    jit_node_t		*target;
+    jit_bool_t		 changed = 0;
+
+    for (offset = first_patch; offset < _jitc->patches.offset; offset++) {
+	node = _jitc->patches.ptr[offset].node;
+	inst = _jitc->patches.ptr[offset].inst;
+	op = *(jit_uint16_t *)inst;
+
+	/* A movi patch is a pool word, not a displacement, and a node already
+	 * known far keeps the form it was emitted with. */
+	if (node->code == jit_code_movi || (node->flag & jit_flag_far))
+	    continue;
+
+	target = node->u.n;
+
+	if ((op & 0xf900) == 0x8900) {			/* BT/BF(/S) */
+	    disp = ((target->u.w - inst) >> 1) - 2;
+	    if (!(target->flag & jit_flag_patch)
+		|| disp < -128 || disp > 127) {
+		node->flag |= jit_flag_far;
+		changed = 1;
+	    }
+	} else if ((op & 0xf000) == 0xa000) {		/* BRA */
+	    disp = ((target->u.w - inst) >> 1) - 2;
+	    if (!(target->flag & jit_flag_patch)
+		|| disp < -2048 || disp > 2046) {
+		node->flag |= jit_flag_far;
+		changed = 1;
+	    }
+	}
+    }
+
+    return (changed);
+}
+#define relax_branches(f)		_relax_branches(_jit, f)
+
 jit_pointer_t
 _emit_code(jit_state_t *_jit)
 {
@@ -751,6 +804,8 @@ _emit_code(jit_state_t *_jit)
     for (node = _jitc->head; node; node = node->next) {
 	if (_jit->pc.uc >= _jitc->code.end)
 	    return (NULL);
+
+	_jitc->far = !!(node->flag & jit_flag_far);
 
 #if DEVEL_DISASSEMBLER
 	node->offset = (jit_uword_t)_jit->pc.w - (jit_uword_t)prevw;
@@ -1274,6 +1329,10 @@ _emit_code(jit_state_t *_jit)
 		break;
 	    case jit_code_epilog:
 		assert(_jitc->function == _jitc->functions.ptr + node->w.w);
+
+		if (relax_branches(undo.patch_offset))
+			_jitc->again = 1;
+
 		if (_jitc->again) {
 		    for (temp = undo.node->next;
 			 temp != node; temp = temp->next) {

@@ -1607,14 +1607,22 @@ static void _ldr_d(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1)
 
 static void _ldi_f(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_f(r0, _R0);
+	jit_uint16_t reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i0);
+	ldr_f(r0, rn(reg));
+
+	jit_unget_reg(reg);
 }
 
 static void _ldi_d(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_d(r0, _R0);
+	jit_uint16_t reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i0);
+	ldr_d(r0, rn(reg));
+
+	jit_unget_reg(reg);
 }
 
 static void _ldxr_f(jit_state_t *_jit, jit_uint16_t r0,
@@ -1662,18 +1670,28 @@ static void _str_d(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1)
 
 static void _sti_f(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0)
 {
-	movi(_R0, i0);
-	STF(_R0, r0);
+	jit_uint16_t reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i0);
+	STF(rn(reg), r0);
+
+	jit_unget_reg(reg);
 }
 
 static void _sti_d(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0)
 {
+	jit_uint16_t reg;
+
 	if (SH_SINGLE_ONLY) {
 		sti_f(i0, r0);
 	} else {
-		movi(_R0, i0 + 8);
-		STFS(_R0, r0);
-		STFS(_R0, r0 + 1);
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0 + 8);
+		STFS(rn(reg), r0);
+		STFS(rn(reg), r0 + 1);
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -2328,8 +2346,12 @@ static void _movr_f_w(jit_state_t *_jit, jit_uint16_t r0, jit_int16_t r1)
 
 static void _movi_w_f(jit_state_t *_jit, jit_int16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	movr_w_f(r0, _R0);
+	jit_uint16_t reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i0);
+	movr_w_f(r0, rn(reg));
+
+	jit_unget_reg(reg);
 }
 
 static void _movr_ww_d(jit_state_t *_jit, jit_uint16_t r0, jit_int16_t r1, jit_int16_t r2)

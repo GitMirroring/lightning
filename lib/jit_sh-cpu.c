@@ -1026,17 +1026,24 @@ _addxr(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 static void
 _addi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (i0 >= -128 && i0 < 127) {
 		movr(r0, r1);
 		ADDI(r0, i0);
 	} else if (r0 != r1) {
 		movi(r0, i0);
 		addr(r0, r1, r0);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		addr(r0, r1, r0);
 	} else {
-		assert(r1 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		addr(r0, r1, _R0);
+		movi(rn(reg), i0);
+		addr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -1050,10 +1057,19 @@ _addci(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _addxi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r0 != _R0 && r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	addxr(r0, r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		addxr(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		addxr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
@@ -1105,37 +1121,57 @@ _subi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _subci(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r0 != _R0 && r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	subcr(r0, r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		subcr(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		subcr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
 _subxi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r0 != _R0 && r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	subxr(r0, r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		subxr(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		subxr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
 _rsbi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if ((jit_uword_t)((i0 >> 7) + 1) < 2) {
 		negr(r0, r1);
 		ADDI(r0, i0);
 	} else if (r0 != r1) {
-		assert(r0 != _R0 && r1 != _R0);
-
 		movi(r0, i0);
 		subr(r0, r0, r1);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		subr(r0, _R0, r1);
+		movi(rn(reg), i0);
+		subr(r0, rn(reg), r1);
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -1156,8 +1192,19 @@ _hmulr(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 static void
 _hmuli(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
-    movi(_R0, i0);
-    hmulr(r0, r1, _R0);
+	jit_uint32_t reg;
+
+	if (r0 != r1) {
+		movi(r0, i0);
+		hmulr(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		hmulr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
@@ -1170,8 +1217,19 @@ _hmulr_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_int32_t r2)
 static void
 _hmuli_u(jit_state_t *_jit, jit_int32_t r0, jit_int32_t r1, jit_word_t i0)
 {
-    movi(_R0, i0);
-    hmulr_u(r0, r1, _R0);
+	jit_uint32_t reg;
+
+	if (r0 != r1) {
+		movi(r0, i0);
+		hmulr_u(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		hmulr_u(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
@@ -1195,30 +1253,63 @@ _qmulr_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1,
 static void
 _muli(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	mulr(r0, r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		mulr(r0, r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		mulr(r0, r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
 _qmuli(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1,
        jit_uint16_t r2, jit_word_t i0)
 {
-	assert(r2 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	qmulr(r0, r1, r2, _R0);
+	if (r0 != r2) {
+		movi(r0, i0);
+		qmulr(r0, r1, r2, r0);
+	} else if (r1 != r2) {
+		movi(r1, i0);
+		qmulr(r0, r1, r2, r1);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		qmulr(r0, r1, r2, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
 _qmuli_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1,
 	 jit_uint16_t r2, jit_word_t i0)
 {
-	assert(r2 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	qmulr_u(r0, r1, r2, _R0);
+	if (r0 != r2) {
+		movi(r0, i0);
+		qmulr_u(r0, r1, r2, r0);
+	} else if (r1 != r2) {
+		movi(r1, i0);
+		qmulr_u(r0, r1, r2, r1);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		qmulr_u(r0, r1, r2, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 }
 
 static void
@@ -1393,8 +1484,8 @@ _qdivi_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1,
 		jit_uint32_t reg = jit_get_reg(jit_class_gpr);
 
 		fallback_divi_u(rn(reg), r2, i0);
-		muli(_R0, rn(reg), i0);
-		subr(r1, r2, _R0);
+		muli(rn(reg), rn(reg), i0);
+		subr(r1, r2, rn(reg));
 
 		jit_unget_reg(reg);
 	}
@@ -1528,6 +1619,8 @@ _andr(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 static void
 _andi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (i0 == 0xff) {
 		extr_uc(r0, r1);
 	} else if (i0 == 0xffff) {
@@ -1539,10 +1632,12 @@ _andi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		movi(r0, i0);
 		AND(r0, r1);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		AND(r0, _R0);
+		movi(rn(reg), i0);
+		AND(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -1560,14 +1655,18 @@ _orr(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 static void
 _ori(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (r0 != r1) {
 		movi(r0, i0);
 		OR(r0, r1);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		OR(r0, _R0);
+		movi(rn(reg), i0);
+		OR(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -1585,6 +1684,8 @@ _xorr(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 static void
 _xori(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (r0 == _R0 && !(i0 & ~0xff)) {
 		movr(r0, r1);
 		XORI(i0);
@@ -1592,10 +1693,12 @@ _xori(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		movi(r0, i0);
 		XOR(r0, r1);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		XOR(r0, _R0);
+		movi(rn(reg), i0);
+		XOR(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 }
 
@@ -1706,28 +1809,41 @@ _eqr(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 static void
 _ner(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_uint16_t r2)
 {
-	assert(r1 != _R0 && r2 != _R0);
+	if (r0 != r1 && r0 != r2) {
+		MOVI(r0, -1);
+		CMPEQ(r1, r2);
+		NEGC(r0, r0);
+	} else {
+		assert(r1 != _R0 && r2 != _R0);
 
-	MOVI(_R0, -1);
-	CMPEQ(r1, r2);
-	NEGC(r0, _R0);
+		MOVI(_R0, -1);
+		CMPEQ(r1, r2);
+		NEGC(r0, _R0);
+	}
 }
 
 static void
 _eqi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (i0 == 0) {
 		TST(r1, r1);
 	} else if (i0 >= -128 && i0 < 128) {
-		assert(r1 != _R0);
+		assert(r0 != _R0);
 
 		movr(_R0, r1);
 		CMPEQI(i0);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		CMPEQ(r1, r0);
 	} else {
-		assert(r1 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		CMPEQ(r1, _R0);
+		movi(rn(reg), i0);
+		CMPEQ(r1, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	MOVT(r0);
 }
@@ -1735,32 +1851,48 @@ _eqi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _nei(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r0 != _R0 && r1 != _R0);
+	jit_uint32_t reg;
 
 	if (i0 == 0) {
 		TST(r1, r1);
 	} else if (i0 >= -128 && i0 < 128) {
+		assert(r0 != _R0);
+
 		movr(_R0, r1);
 		CMPEQI(i0);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		CMPEQ(r1, r0);
 	} else {
-		movi(_R0, i0);
-		CMPEQ(r1, _R0);
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPEQ(r1, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 
-	MOVI(_R0, -1);
-	NEGC(r0, _R0);
+	MOVI(r0, -1);
+	NEGC(r0, r0);
 }
 
 static void
 _gti(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (i0 == 0) {
 		CMPPL(r1);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		CMPGT(r1, r0);
 	} else {
-		assert(r1 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		CMPGT(r1, _R0);
+		movi(rn(reg), i0);
+		CMPGT(r1, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	MOVT(r0);
 }
@@ -1768,13 +1900,20 @@ _gti(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _gei(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
+	jit_uint32_t reg;
+
 	if (i0 == 0) {
 		CMPPZ(r1);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		CMPGE(r1, r0);
 	} else {
-		assert(r1 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i0);
-		CMPGE(r1, _R0);
+		movi(rn(reg), i0);
+		CMPGE(r1, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	MOVT(r0);
 }
@@ -1782,66 +1921,117 @@ _gei(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _gti_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	CMPHI(r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		CMPHI(r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPHI(r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 	MOVT(r0);
 }
 
 static void
 _gei_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	CMPHS(r1, _R0);
+	if (r0 != r1) {
+		movi(r0, i0);
+		CMPHS(r1, r0);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPHS(r1, rn(reg));
+
+		jit_unget_reg(reg);
+	}
 	MOVT(r0);
 }
 
 static void
 _lti(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
 	if (i0 == 0) {
 		movr(r0, r1);
 		ROTCL(r0);
-		MOVT(r0);
+	} else if (r0 != r1) {
+		movi(r0, i0);
+		CMPGT(r0, r1);
 	} else {
-		movi(_R0, i0);
-		CMPGT(_R0, r1);
-		MOVT(r0);
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPGT(rn(reg), r1);
+
+		jit_unget_reg(reg);
 	}
+	MOVT(r0);
 }
 
 static void
 _lei(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	CMPGE(_R0, r1);
+	if (r0 != r1) {
+		movi(r0, i0);
+		CMPGE(r0, r1);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPGE(rn(reg), r1);
+
+		jit_unget_reg(reg);
+	}
 	MOVT(r0);
 }
 
 static void
 _lti_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	CMPHI(_R0, r1);
+	if (r0 != r1) {
+		movi(r0, i0);
+		CMPHI(r0, r1);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPHI(rn(reg), r1);
+
+		jit_unget_reg(reg);
+	}
 	MOVT(r0);
 }
 
 static void
 _lei_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
+	jit_uint32_t reg;
 
-	movi(_R0, i0);
-	CMPHS(_R0, r1);
+	if (r0 != r1) {
+		movi(r0, i0);
+		CMPHS(r0, r1);
+	} else {
+		reg = jit_get_reg(jit_class_gpr);
+
+		movi(rn(reg), i0);
+		CMPHS(rn(reg), r1);
+
+		jit_unget_reg(reg);
+	}
 	MOVT(r0);
 }
 
@@ -1941,22 +2131,19 @@ _lshi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		if (i0 & 0x1)
 			SHLL(r0);
 	} else {
-		reg = r0 != _R0 ? _R0 : jit_get_reg(jit_class_gpr);
+		reg = jit_get_reg(jit_class_gpr);
 
 		movi(rn(reg), i0);
 		lshr(r0, r0, rn(reg));
 
-		if (r0 == _R0)
-			jit_unget_reg(reg);
+		jit_unget_reg(reg);
 	}
 }
 
 static void
 _rshi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	jit_uint32_t reg;
-
-	reg = r0 != _R0 ? _R0 : jit_get_reg(jit_class_gpr);
+	jit_uint32_t reg = jit_get_reg(jit_class_gpr);
 
 	movr(r0, r1);
 	if (jit_sh34_p()) {
@@ -1970,8 +2157,7 @@ _rshi(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		SHAR(r0);
 	}
 
-	if (r0 == _R0)
-		jit_unget_reg(reg);
+	jit_unget_reg(reg);
 }
 
 static void
@@ -1997,7 +2183,7 @@ _rshi_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		if (i0 & 0x1)
 			SHLR(r0);
 	} else {
-		reg = r0 != _R0 ? _R0 : jit_get_reg(jit_class_gpr);
+		reg = jit_get_reg(jit_class_gpr);
 
 		if (jit_sh34_p()) {
 			movi(rn(reg), -i0);
@@ -2009,8 +2195,7 @@ _rshi_u(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 			SHLR(r0);
 		}
 
-		if (r0 == _R0)
-			jit_unget_reg(reg);
+		jit_unget_reg(reg);
 	}
 }
 
@@ -2142,32 +2327,32 @@ static void _ldr_us(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1)
 
 static void _ldi_c(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_c(r0, _R0);
+	movi(r0, i0);
+	ldr_c(r0, r0);
 }
 
 static void _ldi_s(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_s(r0, _R0);
+	movi(r0, i0);
+	ldr_s(r0, r0);
 }
 
 static void _ldi_i(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_i(r0, _R0);
+	movi(r0, i0);
+	ldr_i(r0, r0);
 }
 
 static void _ldi_uc(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_uc(r0, _R0);
+	movi(r0, i0);
+	ldr_uc(r0, r0);
 }
 
 static void _ldi_us(jit_state_t *_jit, jit_uint16_t r0, jit_word_t i0)
 {
-	movi(_R0, i0);
-	ldr_us(r0, _R0);
+	movi(r0, i0);
+	ldr_us(r0, r0);
 }
 
 static void
@@ -2227,6 +2412,9 @@ _ldxi_c(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 	} else if (i0 >= 0 && i0 <= 0xf) {
 		LDDB(r1, i0);
 		movr(r0, _R0);
+	} else if (r0 != r1 && r0 != _R0) {
+		movi(r0, i0);
+		ldxr_c(r0, r0, r1);
 	} else {
 		movi(_R0, i0);
 		ldxr_c(r0, r1, _R0);
@@ -2249,6 +2437,9 @@ _ldxi_s(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 	} else if (i0 >= 0 && i0 <= 0x1f && !(i0 & 0x1)) {
 		LDDW(r1, i0 >> 1);
 		movr(r0, _R0);
+	} else if (r0 != r1 && r0 != _R0) {
+		movi(r0, i0);
+		ldxr_s(r0, r0, r1);
 	} else {
 		movi(_R0, i0);
 		ldxr_s(r0, r1, _R0);
@@ -2270,6 +2461,9 @@ _ldxi_i(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 		}
 	} else if (i0 >= 0 && i0 <= 0x3f && !(i0 & 0x3)) {
 		LDDL(r0, r1, i0 >> 2);
+	} else if (r0 != r1 && r0 != _R0) {
+		movi(r0, i0);
+		ldxr_i(r0, r0, r1);
 	} else {
 		movi(_R0, i0);
 		ldxr_i(r0, r1, _R0);
@@ -2279,19 +2473,15 @@ _ldxi_i(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 static void
 _ldxi_uc(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
-
-	ldxi_c(_R0, r1, i0);
-	extr_uc(r0, _R0);
+	ldxi_c(r0, r1, i0);
+	extr_uc(r0, r0);
 }
 
 static void
 _ldxi_us(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 {
-	assert(r1 != _R0);
-
-	ldxi_s(_R0, r1, i0);
-	extr_us(r0, _R0);
+	ldxi_s(r0, r1, i0);
+	extr_us(r0, r0);
 }
 
 static void
@@ -2343,26 +2533,32 @@ _ldxai_i(jit_state_t *_jit, jit_uint16_t r0, jit_uint16_t r1, jit_word_t i0)
 
 static void _sti_c(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0)
 {
-	assert(r0 != _R0);
+	jit_uint32_t reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i0);
-	str_c(_R0, r0);
+	movi(rn(reg), i0);
+	str_c(rn(reg), r0);
+
+	jit_unget_reg(reg);
 }
 
 static void _sti_s(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0)
 {
-	assert(r0 != _R0);
+	jit_uint32_t reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i0);
-	str_s(_R0, r0);
+	movi(rn(reg), i0);
+	str_s(rn(reg), r0);
+
+	jit_unget_reg(reg);
 }
 
 static void _sti_i(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0)
 {
-	assert(r0 != _R0);
+	jit_uint32_t reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i0);
-	str_i(_R0, r0);
+	movi(rn(reg), i0);
+	str_i(rn(reg), r0);
+
+	jit_unget_reg(reg);
 }
 
 static void
@@ -2601,6 +2797,7 @@ static jit_word_t
 _bgti(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
       jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
@@ -2608,10 +2805,12 @@ _bgti(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 	if (i1 == 0) {
 		CMPPL(r0);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i1);
-		CMPGT(r0, _R0);
+		movi(rn(reg), i1);
+		CMPGT(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
@@ -2623,6 +2822,7 @@ static jit_word_t
 _bgei(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
       jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
@@ -2630,10 +2830,12 @@ _bgei(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 	if (i1 == 0) {
 		CMPPZ(r0);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i1);
-		CMPGE(r0, _R0);
+		movi(rn(reg), i1);
+		CMPGE(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
@@ -2645,6 +2847,7 @@ static jit_word_t
 _bgti_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 	jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
@@ -2652,10 +2855,12 @@ _bgti_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 	if (i1 == 0) {
 		maybe_emit_tst(_jit, r0, &set);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i1);
-		CMPHI(r0, _R0);
+		movi(rn(reg), i1);
+		CMPHI(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
@@ -2667,14 +2872,18 @@ static jit_word_t
 _bgei_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 	jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
-
-	assert(r0 != _R0);
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
 
-	movi(_R0, i1);
-	CMPHS(r0, _R0);
+	reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i1);
+	CMPHS(r0, rn(reg));
+
+	jit_unget_reg(reg);
+
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
 
@@ -2684,6 +2893,7 @@ _bgei_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _beqi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
@@ -2694,10 +2904,12 @@ static jit_word_t _beqi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 		movr(_R0, r0);
 		CMPEQI(i1);
 	} else {
-		assert(r0 != _R0);
+		reg = jit_get_reg(jit_class_gpr);
 
-		movi(_R0, i1);
-		CMPEQ(_R0, r0);
+		movi(rn(reg), i1);
+		CMPEQ(r0, rn(reg));
+
+		jit_unget_reg(reg);
 	}
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
@@ -2708,14 +2920,18 @@ static jit_word_t _beqi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _bmsi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
-
-	assert(r0 != _R0);
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
 
-	movi(_R0, i1);
-	TST(_R0, r0);
+	reg = jit_get_reg(jit_class_gpr);
+
+	movi(rn(reg), i1);
+	TST(rn(reg), r0);
+
+	jit_unget_reg(reg);
+
 	w = _jit->pc.w;
 	emit_branch_opcode(_jit, i0, w, set, p);
 
@@ -2756,14 +2972,17 @@ static jit_word_t _boaddr_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _boaddi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			  jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
 
-	assert(r0 != _R0);
+	reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i1);
-	w = _boaddr(_jit, i0, r0, _R0, set, p);
+	movi(rn(reg), i1);
+	w = _boaddr(_jit, i0, r0, rn(reg), set, p);
+
+	jit_unget_reg(reg);
 
 	return (w);
 }
@@ -2771,14 +2990,17 @@ static jit_word_t _boaddi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _boaddi_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			    jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
 	set_fmode(_jit, SH_DEFAULT_FPU_MODE);
 
-	assert(r0 != _R0);
+	reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i1);
-	w = _boaddr_u(_jit, i0, r0, _R0, set, p);
+	movi(rn(reg), i1);
+	w = _boaddr_u(_jit, i0, r0, rn(reg), set, p);
+
+	jit_unget_reg(reg);
 
 	return (w);
 }
@@ -2820,12 +3042,15 @@ static jit_word_t _bosubr_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _bosubi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			  jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
-	assert(r0 != _R0);
+	reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i1);
-	w = _bosubr(_jit, i0, r0, _R0, set, p);
+	movi(rn(reg), i1);
+	w = _bosubr(_jit, i0, r0, rn(reg), set, p);
+
+	jit_unget_reg(reg);
 
 	return (w);
 }
@@ -2833,12 +3058,15 @@ static jit_word_t _bosubi(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 static jit_word_t _bosubi_u(jit_state_t *_jit, jit_word_t i0, jit_uint16_t r0,
 			    jit_word_t i1, jit_bool_t set, jit_bool_t p)
 {
+	jit_uint32_t reg;
 	jit_word_t w;
 
-	assert(r0 != _R0);
+	reg = jit_get_reg(jit_class_gpr);
 
-	movi(_R0, i1);
-	w = _bosubr_u(_jit, i0, r0, _R0, set, p);
+	movi(rn(reg), i1);
+	w = _bosubr_u(_jit, i0, r0, rn(reg), set, p);
+
+	jit_unget_reg(reg);
 
 	return (w);
 }

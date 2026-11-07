@@ -1660,6 +1660,7 @@ _invalidate_consts(jit_state_t *_jit)
 static void
 _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
 {
+#ifndef NDEBUG
     jit_int32_t		 flag;
 
     assert(node->flag & jit_flag_node);
@@ -1668,6 +1669,8 @@ _patch(jit_state_t *_jit, jit_word_t instr, jit_node_t *node)
     else
 	flag = node->u.n->flag;
     assert(!(flag & jit_flag_patch));
+#endif
+
     if (_jitc->patches.offset >= _jitc->patches.length) {
 	jit_realloc((jit_pointer_t *)&_jitc->patches.ptr,
 		    _jitc->patches.length * sizeof(jit_patch_t),

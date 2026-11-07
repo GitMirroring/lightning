@@ -761,7 +761,7 @@ _emit_code(jit_state_t *_jit)
 		    nop(node->u.w - word);
 		break;
 	    case jit_code_skip:
-		nop((node->u.w + 3) & ~3);
+		nop((node->u.w + 1) & ~1);
 		break;
 	    case jit_code_note:		case jit_code_name:
 		node->u.w = _jit->pc.w;
